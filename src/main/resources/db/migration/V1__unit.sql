@@ -52,3 +52,31 @@ CREATE TABLE vote
   voice INTEGER DEFAULT 0,
   UNIQUE (owner, tid)
 );
+
+
+----------
+CREATE UNIQUE INDEX vote_user_thread ON vote (owner, tid);
+
+CREATE INDEX new_index_onPost ON post (threadid, parent, path, pid);
+
+CREATE INDEX post_tid_path_id ON post (threadid, path, pid);
+--
+
+CREATE INDEX post_threadid_created_id
+  ON post (threadid, pid);
+
+CREATE INDEX post_patent_threadid_id
+  ON post (parent, threadid, pid);
+
+CREATE INDEX thread_forum_created
+  ON thread (forumid); -----+++++
+
+
+CREATE INDEX POST_THREADID_PATH
+  ON post (threadid, (path [1]));
+
+CREATE UNIQUE INDEX forum_slug_id
+  ON forum ( id);
+
+CREATE UNIQUE INDEX thread_slug_id
+  ON thread (tid);
