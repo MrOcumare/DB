@@ -88,6 +88,8 @@ public class ForumDAO {
         try {
             List<Object> myObj = new ArrayList<>();
             StringBuilder myStr = new StringBuilder("select * from users where nickname in ((select owner from post where forum = ?::citext) union (select owner from thread where forum = ?::citext))");
+//            StringBuilder myStr = new StringBuilder("select * from users where nickname in (select owner from thread where forum = ?::citext)");
+//            System.out.println();
             myObj.add(forum);
             myObj.add(forum);
             if (since != null) {
