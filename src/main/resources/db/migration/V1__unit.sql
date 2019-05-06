@@ -52,3 +52,75 @@ CREATE TABLE vote
   voice INTEGER DEFAULT 0,
   UNIQUE (owner, tid)
 );
+
+
+CREATE TABLE users_on_forum (
+                              id       SERIAL PRIMARY KEY,
+                              nickname CITEXT,
+                              fullname TEXT,
+                              email    CITEXT,
+                              about    TEXT,
+                              forumid  INTEGER,
+                              UNIQUE (forumid, nickname)
+);
+
+CREATE OR REPLACE FUNCTION forum_threads_inc()
+  RETURNS TRIGGER
+  LANGUAGE plpgsql
+AS $$
+BEGIN
+  new.forumid = (SELECT id
+                 FROM forum
+                 WHERE lower(forum.slug) = lower(new.forum));
+  INSERT INTO users_on_forum (nickname, forumid, fullname, email, about)
+    (SELECT
+       new.owner,
+       new.forumid,
+       u.fullname,
+       u.email,
+       u.about
+     FROM users u
+     WHERE lower(new.owner) = lower(u.nickname))
+  ON CONFLICT DO NOTHING;
+
+  RETURN new;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS t_forum_threads_inc
+  ON thread;
+
+CREATE TRIGGER t_forum_threads_inc
+  BEFORE INSERT
+  ON thread
+  FOR EACH ROW
+EXECUTE PROCEDURE forum_threads_inc();
+
+
+CREATE OR REPLACE FUNCTION forum_posts_inc()
+  RETURNS TRIGGER
+  LANGUAGE plpgsql
+AS $$
+BEGIN
+  INSERT INTO users_on_forum (nickname, forumid, fullname, email, about)
+    (SELECT
+       new.owner,
+       (select id from forum where slug = new.forum),
+       u.fullname,
+       u.email,
+       u.about
+     FROM users u
+     WHERE lower(new.owner) = lower(u.nickname))
+  ON CONFLICT DO NOTHING;
+  RETURN new;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS t_forum_posts_inc
+  ON post;
+
+CREATE TRIGGER t_forum_posts_inc
+  BEFORE INSERT
+  ON post
+  FOR EACH ROW
+EXECUTE PROCEDURE forum_posts_inc();
