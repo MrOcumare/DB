@@ -75,7 +75,7 @@ public class ThreadDAO {
         try {
             //System.out.println(forumid + " " + limit + " " + since + " " + desc );
             List<Object> myObj = new ArrayList<>();
-            final StringBuilder myStr = new StringBuilder("select * from thread where forum = ?::citext ");
+            final StringBuilder myStr = new StringBuilder("select * from thread where forumid = (select id from forum where slug = ?::citext) ");
             myObj.add(forum);
             if (since != null) {
                 if (desc) {

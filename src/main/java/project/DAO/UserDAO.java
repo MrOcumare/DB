@@ -52,7 +52,7 @@ public class UserDAO {
                                 "  fullname = COALESCE(?, fullname)," +
                                 "  about = COALESCE(?, about)," +
                                 "  email = COALESCE(?, email)" +
-                                "where LOWER(nickname) = LOWER(?)",
+                                "where nickname = ?", //removed lower
                         PreparedStatement.RETURN_GENERATED_KEYS);
                 pst.setString(1, user.getFullname());
                 pst.setString(2, user.getAbout());

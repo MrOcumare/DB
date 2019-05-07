@@ -72,7 +72,7 @@ AS $$
 BEGIN
   new.forumid = (SELECT id
                  FROM forum
-                 WHERE lower(forum.slug) = lower(new.forum));
+                 WHERE forum.slug = new.forum);
   INSERT INTO users_on_forum (nickname, forumid, fullname, email, about)
     (SELECT
        new.owner,
@@ -81,7 +81,7 @@ BEGIN
        u.email,
        u.about
      FROM users u
-     WHERE lower(new.owner) = lower(u.nickname))
+     WHERE new.owner = u.nickname)
   ON CONFLICT DO NOTHING;
 
   RETURN new;
@@ -111,7 +111,7 @@ BEGIN
        u.email,
        u.about
      FROM users u
-     WHERE lower(new.owner) = lower(u.nickname))
+     WHERE new.owner = u.nickname)
   ON CONFLICT DO NOTHING;
   RETURN new;
 END;
