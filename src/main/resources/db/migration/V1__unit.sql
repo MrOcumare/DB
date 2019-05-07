@@ -54,29 +54,114 @@ CREATE TABLE vote
 );
 
 
-----------
-CREATE UNIQUE INDEX vote_user_thread ON vote (owner, tid);
 
-CREATE INDEX new_index_onPost ON post (threadid, parent, path, pid);
+CREATE TABLE users_on_forum (
+                              id       SERIAL PRIMARY KEY,
+                              nickname CITEXT,
+                              fullname TEXT,
+                              email    CITEXT,
+                              about    TEXT,
+                              forumid  INTEGER,
+                              UNIQUE (forumid, nickname)
+);
 
-CREATE INDEX post_tid_path_id ON post (threadid, path, pid);
---
+CREATE OR REPLACE FUNCTION forum_threads_inc()
+  RETURNS TRIGGER
+  LANGUAGE plpgsql
+AS $$
+BEGIN
+  new.forumid = (SELECT id
+                 FROM forum
+                 WHERE lower(forum.slug) = lower(new.forum));
+  INSERT INTO users_on_forum (nickname, forumid, fullname, email, about)
+    (SELECT
+       new.owner,
+       new.forumid,
+       u.fullname,
+       u.email,
+       u.about
+     FROM users u
+     WHERE lower(new.owner) = lower(u.nickname))
+  ON CONFLICT DO NOTHING;
+
+  RETURN new;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS t_forum_threads_inc
+  ON thread;
+
+CREATE TRIGGER t_forum_threads_inc
+  BEFORE INSERT
+  ON thread
+  FOR EACH ROW
+EXECUTE PROCEDURE forum_threads_inc();
+
+
+CREATE OR REPLACE FUNCTION forum_posts_inc()
+  RETURNS TRIGGER
+  LANGUAGE plpgsql
+AS $$
+BEGIN
+  INSERT INTO users_on_forum (nickname, forumid, fullname, email, about)
+    (SELECT
+       new.owner,
+       (select id from forum where slug = new.forum),
+       u.fullname,
+       u.email,
+       u.about
+     FROM users u
+     WHERE lower(new.owner) = lower(u.nickname))
+  ON CONFLICT DO NOTHING;
+  RETURN new;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS t_forum_posts_inc
+  ON post;
+
+CREATE TRIGGER t_forum_posts_inc
+  BEFORE INSERT
+  ON post
+  FOR EACH ROW
+EXECUTE PROCEDURE forum_posts_inc();
+
+DROP INDEX IF EXISTS post_partial_index;
+DROP INDEX IF EXISTS post_new_index;
+DROP INDEX IF EXISTS post_owner_forum;
+DROP INDEX IF EXISTS post_tid;
+DROP INDEX IF EXISTS thread_owner_forum;
+DROP INDEX IF EXISTS post_new_index_by_pid;
+DROP INDEX IF EXISTS new_index_onPost;
+DROP INDEX IF EXISTS post_threadid_created_id;
+DROP INDEX IF EXISTS post_patent_threadid_id;
+DROP INDEX IF EXISTS thread_forum_created;
+DROP INDEX IF EXISTS forum_slug_id;
+DROP INDEX IF EXISTS thread_slug_id;
+
+DROP INDEX IF EXISTS post_path_index;
+
+CREATE INDEX post_partial_index on post (pid, threadid, parent) where parent = 0; -- delete?
+
+CREATE INDEX post_new_index on post ((path[1]),threadid, pid, created);
+
+CREATE INDEX post_owner_forum on post (forum, owner);
+CREATE INDEX post_tid on post (threadid);
+---дал буст
+-- CREATE INDEX thread_owner_forum on thread(forum, owner);
+
+-- CREATE INDEX post_new_index_by_pid on post(pid) ;
+
+
+CREATE INDEX new_index_onPost
+  ON post (threadid, parent, path, pid);
 
 CREATE INDEX post_threadid_created_id
-  ON post (threadid, pid);
+  ON post (threadid, created, pid);
 
-CREATE INDEX post_patent_threadid_id
-  ON post (parent, threadid, pid);
+-- CREATE INDEX post_patent_threadid_id
+--   ON post (parent, threadid, pid);
 
 CREATE INDEX thread_forum_created
-  ON thread (forumid); -----+++++
+  ON thread (forumid, created);
 
-
-CREATE INDEX POST_THREADID_PATH
-  ON post (threadid, (path [1]));
-
-CREATE UNIQUE INDEX forum_slug_id
-  ON forum ( id);
-
-CREATE UNIQUE INDEX thread_slug_id
-  ON thread (tid);

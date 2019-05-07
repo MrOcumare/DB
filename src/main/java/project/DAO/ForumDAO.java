@@ -85,19 +85,16 @@ public class ForumDAO {
 
 
 
+    public List<User> getUsers(Integer forumid, Integer limit, String since, Boolean desc) {
 
-////////
-
-
-////////
-
-
-    public List<User> getUsers(String forum, Integer limit, String since, Boolean desc) {
         try {
             List<Object> myObj = new ArrayList<>();
-            StringBuilder myStr = new StringBuilder("select * from users where nickname in ((select owner from post where forum = ?::citext) union (select owner from thread where forum = ?::citext))");
-            myObj.add(forum);
-            myObj.add(forum);
+            StringBuilder myStr = new StringBuilder("SELECT id, nickname, fullname, email, about from users_on_forum  WHERE forumid = ? ");
+//            StringBuilder myStr = new StringBuilder("select * from users where nickname in ((select owner from post where forum = ?::citext) union (select owner from thread where forum = ?::citext))");
+//            StringBuilder myStr = new StringBuilder("select * from users where nickname in (select owner from thread where forum = ?::citext)");
+//            System.out.println();
+//            myObj.add(forum);
+            myObj.add(forumid);
             if (since != null) {
                 if (desc) {
                     myStr.append(" AND nickname < ?::citext ");

@@ -134,43 +134,6 @@ public class ThreadDAO {
     }
 
     public void vote(String key, Vote vt) {
-//        try{
-//            GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-//            template.update(con -> {
-//                PreparedStatement statement = con.prepareStatement(
-//                        "insert into vote(owner, voice) values(?::citext,?) " +
-//                                " ON CONFLICT (owner) DO UPDATE SET " +
-//                                " voice = ?;",
-//                        PreparedStatement.RETURN_GENERATED_KEYS);
-//                statement.setString(1, vt.getNickname());
-//                statement.setLong(2, vt.getVoice());
-//                statement.setLong(3, vt.getVoice());
-//                return statement;
-//            }, keyHolder);
-//            String sql = "UPDATE thread "+
-//                    "set votes = votes + ? "+
-//                    "WHERE tid = ?";
-//            template.update(sql, vt.getVoice(), Integer.parseInt(key) );
-//            System.out.println(Integer.parseInt(key)+"    qq    weqwqeqweqweqweqweqe     "  + vt.getVoice());
-//        } catch (NumberFormatException e) {
-//            GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-//            template.update(con -> {
-//                PreparedStatement statement = con.prepareStatement(
-//                        "insert into vote(owner, voice) values(?::citext,?)" +
-//                                " ON CONFLICT (owner) DO UPDATE SET " +
-//                                " voice = ?;",
-//                        PreparedStatement.RETURN_GENERATED_KEYS);
-//                statement.setString(1, vt.getNickname());
-//                statement.setLong(2, vt.getVoice());
-//                statement.setLong(3, vt.getVoice());
-//
-//                return statement;
-//            }, keyHolder);
-//            String sql = "UPDATE thread "+
-//                    "set votes = votes + ? "+
-//                    "WHERE slug = ?::citext";
-//            template.update(sql, vt.getVoice(), key );
-//        }
         try {
             vt.setTid(Integer.parseInt(key));
         } catch (NumberFormatException e) {
@@ -272,23 +235,26 @@ public class ThreadDAO {
             StringBuilder myStr = new StringBuilder("select * from post p join ");
             if (since != null) {
                 if (desc) {
-                    myStr.append(" (select pid from post where parent = 0 and threadid = ? and path[1] < (SELECT path[1] FROM post WHERE pid = ?) order by pid desc  limit ? ) as TT on  path[1] = TT.pid order by TT.pid desc, p.path asc, created desc ;");
+                    myStr.append(" (select pid from post where parent = 0 and threadid = ? and path[1] < (SELECT path[1] FROM post WHERE pid = ?) order by pid desc  limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid desc, p.path asc, created desc ;");
 
                 } else {
-                    myStr.append(" (select pid from post where parent = 0 and threadid = ? and path[1] > (SELECT path[1] FROM post WHERE pid = ?) order by pid asc limit ? ) as TT on  path[1] = TT.pid order by TT.pid asc, p.path asc, created desc ;");
+                    myStr.append(" (select pid from post where parent = 0 and threadid = ? and path[1] > (SELECT path[1] FROM post WHERE pid = ?) order by pid asc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid asc, p.path asc, created desc ;");
                 }
                 myObj.add(threadId);
                 myObj.add(since);
                 myObj.add(limit);
+                myObj.add(threadId);
+
 
             } else if (limit != null) {
                 if (desc) {
-                    myStr.append(" (select pid  from post where parent = 0 and threadid = ? order by pid desc limit ? ) as TT on  path[1] = TT.pid order by TT.pid desc, p.path asc, created desc ;");
+                    myStr.append(" (select pid  from post where parent = 0 and threadid = ? order by pid desc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid desc, p.path asc, created desc ;");
                 } else {
-                    myStr.append(" (select pid  from post where parent = 0 and threadid = ? order by pid asc limit ? ) as TT on  path[1] = TT.pid order by TT.pid asc, p.path asc, created desc ;");
+                    myStr.append(" (select pid  from post where parent = 0 and threadid = ? order by pid asc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid asc, p.path asc, created desc ;");
                 }
                 myObj.add(threadId);
                 myObj.add(limit);
+                myObj.add(threadId);
 
             }
 

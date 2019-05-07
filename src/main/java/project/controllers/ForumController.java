@@ -113,7 +113,7 @@ public class ForumController {
                                       @RequestParam(value = "since", required = false) String since,
                                       @RequestParam(value = "desc", required = false, defaultValue = "false") Boolean desc) {
         if (forumDAO.getForum(forum) != null ) {
-            return ResponseEntity.status(HttpStatus.OK).body(forumDAO.getUsers(forum, limit, since, desc));
+            return ResponseEntity.status(HttpStatus.OK).body(forumDAO.getUsers(forumDAO.getForumIdBySlug(forum), limit, since, desc));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
         }
