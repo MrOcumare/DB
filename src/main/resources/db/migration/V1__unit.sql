@@ -124,3 +124,42 @@ CREATE TRIGGER t_forum_posts_inc
   ON post
   FOR EACH ROW
 EXECUTE PROCEDURE forum_posts_inc();
+
+DROP INDEX IF EXISTS post_partial_index;
+DROP INDEX IF EXISTS post_new_index;
+DROP INDEX IF EXISTS post_owner_forum;
+DROP INDEX IF EXISTS post_tid;
+DROP INDEX IF EXISTS thread_owner_forum;
+DROP INDEX IF EXISTS post_new_index_by_pid;
+DROP INDEX IF EXISTS new_index_onPost;
+DROP INDEX IF EXISTS post_threadid_created_id;
+DROP INDEX IF EXISTS post_patent_threadid_id;
+DROP INDEX IF EXISTS thread_forum_created;
+DROP INDEX IF EXISTS forum_slug_id;
+DROP INDEX IF EXISTS thread_slug_id;
+
+DROP INDEX IF EXISTS post_path_index;
+
+CREATE INDEX post_partial_index on post (pid, threadid, parent) where parent = 0; -- delete?
+
+CREATE INDEX post_new_index on post ((path[1]),threadid, pid, created);
+
+CREATE INDEX post_owner_forum on post (forum, owner);
+CREATE INDEX post_tid on post (threadid);
+---дал буст
+-- CREATE INDEX thread_owner_forum on thread(forum, owner);
+
+-- CREATE INDEX post_new_index_by_pid on post(pid) ;
+
+
+CREATE INDEX new_index_onPost
+  ON post (threadid, parent, path, pid);
+
+CREATE INDEX post_threadid_created_id
+  ON post (threadid, created, pid);
+
+-- CREATE INDEX post_patent_threadid_id
+--   ON post (parent, threadid, pid);
+
+CREATE INDEX thread_forum_created
+  ON thread (forumid, created);
