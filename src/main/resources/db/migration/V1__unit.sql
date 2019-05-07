@@ -54,6 +54,7 @@ CREATE TABLE vote
 );
 
 
+
 CREATE TABLE users_on_forum (
                               id       SERIAL PRIMARY KEY,
                               nickname CITEXT,
@@ -163,3 +164,4 @@ CREATE INDEX post_threadid_created_id
 
 CREATE INDEX thread_forum_created
   ON thread (forumid, created);
+

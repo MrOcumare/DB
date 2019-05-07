@@ -84,7 +84,9 @@ public class ForumDAO {
     }
 
 
+
     public List<User> getUsers(Integer forumid, Integer limit, String since, Boolean desc) {
+
         try {
             List<Object> myObj = new ArrayList<>();
             StringBuilder myStr = new StringBuilder("SELECT id, nickname, fullname, email, about from users_on_forum  WHERE forumid = ? ");
