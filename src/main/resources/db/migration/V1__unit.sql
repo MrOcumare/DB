@@ -193,9 +193,9 @@ CREATE TRIGGER t_tpost_path
   FOR EACH ROW
 EXECUTE PROCEDURE post_path();
 
-DROP INDEX IF EXISTS post_partial_index;
+-- DROP INDEX IF EXISTS post_partial_index;
 DROP INDEX IF EXISTS post_new_index;
-DROP INDEX IF EXISTS post_owner_forum;
+-- DROP INDEX IF EXISTS post_owner_forum;
 DROP INDEX IF EXISTS post_tid;
 DROP INDEX IF EXISTS thread_owner_forum;
 DROP INDEX IF EXISTS post_new_index_by_pid;
@@ -208,11 +208,11 @@ DROP INDEX IF EXISTS thread_slug_id;
 
 DROP INDEX IF EXISTS post_path_index;
 
-CREATE INDEX post_partial_index on post (pid, threadid, parent) where parent = 0; -- delete?
+-- CREATE INDEX post_partial_index on post (pid, threadid, parent) where parent = 0; -- delete?
 
 CREATE INDEX post_new_index on post ((path [ 1]), threadid, pid, created);
 
-CREATE INDEX post_owner_forum on post (forum, owner);
+-- CREATE INDEX post_owner_forum on post (forum, owner);
 CREATE INDEX post_tid on post (threadid);
 ---дал буст
 -- CREATE INDEX thread_owner_forum on thread(forum, owner);
