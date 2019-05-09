@@ -144,18 +144,16 @@ public class ThreadDAO {
         template.update(con -> {
             PreparedStatement statement = con.prepareStatement(
                     "insert into vote(owner, voice, tid) values(?::citext,?, ?)" +
-                            " ON CONFLICT (owner, tid) DO UPDATE SET " +
-                            " voice = ?;",
+                            " ON CONFLICT (owner, tid) " +
+                            " DO UPDATE SET voice = EXCLUDED.voice;",
                     PreparedStatement.RETURN_GENERATED_KEYS);
             statement.setString(1, vt.getNickname());
             statement.setLong(2, vt.getVoice());
             statement.setLong(3, vt.getTid());
-            statement.setLong(4, vt.getVoice());
 
             return statement;
         }, keyHolder);
-        String sql = "UPDATE thread set votes = (select sum(voice) from vote WHERE tid = ?) WHERE tid = ?";
-        template.update(sql, vt.getTid(), vt.getTid());
+
     }
 
     public Integer chagenThread(Thread body) {
