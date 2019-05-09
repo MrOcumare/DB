@@ -208,19 +208,38 @@ public class ThreadDAO {
             return template.query(myStr.toString()
                     , myObj.toArray(), POST_MAPPER);
         } else if (sort.equals("tree")) {
-            StringBuilder myStr = new StringBuilder("select * from post where threadid = ?");
-            myObj.add(threadId);
+
+            /*
+            * SELECT *
+                FROM post p1
+                       join post p2 on p1.threadid = '4526' and p2.pid = '675413' and p1.path > p2.path
+                ORDER BY p1.path
+                LIMIT '15';*/
+
+//            StringBuilder myStr = new StringBuilder("select * from post where threadid = ?");
+            StringBuilder myStr = new StringBuilder(" ");
+
             if (since != null) {
                 if (desc) {
-                    myStr.append(" and path < (select path from post where pid = ?) ");
+                    myStr.append("SELECT * " +
+                            "                FROM post p1 " +
+                            "                       join post p2 on p1.threadid = ? and p2.pid = ? and p1.path < p2.path ");
                 } else {
-                    myStr.append(" and path > (select path from post where pid = ?) ");
+                    myStr.append("SELECT * " +
+                            "                FROM post p1 " +
+                            "                       join post p2 on p1.threadid = ? and p2.pid = ? and p1.path > p2.path ");
                 }
+                myObj.add(threadId);
                 myObj.add(since);
+                myStr.append(" order by p1.path ");
+            } else {
+                myStr.append("select * from post where threadid = ?");
+                myObj.add(threadId);
+                myStr.append(" order by path ");
             }
-            myStr.append(" order by path ");
+
             if (desc) {
-                myStr.append(" desc, pid desc ");
+                myStr.append(" desc ");
             }
             if (limit != null) {
                 myStr.append(" limit ? ");
