@@ -41,7 +41,7 @@ CREATE table post
   message  TEXT NOT NULL,
   parent   INTEGER DEFAULT 0,
   threadid INTEGER REFERENCES thread (tid),
-  path     INT[]
+  path     INT[] DEFAULT ARRAY[]::INT[]
 );
 
 CREATE TABLE vote
@@ -171,6 +171,27 @@ CREATE TRIGGER t_thread_vote_inc_update
   ON vote
   FOR EACH ROW
 EXECUTE PROCEDURE thread_vote_inc_update();
+
+
+CREATE OR REPLACE FUNCTION post_path()
+  RETURNS TRIGGER
+  LANGUAGE plpgsql
+AS
+$$
+BEGIN
+  update post set path = array_append((select path from post where pid = new.parent), new.pid) where pid = new.pid;
+  RETURN new;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS t_post_path
+  ON post;
+
+CREATE TRIGGER t_tpost_path
+  AFTER INSERT
+  ON post
+  FOR EACH ROW
+EXECUTE PROCEDURE post_path();
 
 DROP INDEX IF EXISTS post_partial_index;
 DROP INDEX IF EXISTS post_new_index;

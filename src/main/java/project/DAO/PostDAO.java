@@ -26,10 +26,9 @@ public class PostDAO {
             for (Post body : bodyList) {
                 body.setForum(th.getForum());
                 body.setThread(th.getId());
-               // body.setForum(th.getForumid());
                 body.setCreated(bodyList.get(0).getCreated());
-                Post chuf = getPostById(body.getParent());
-                if ((chuf == null && body.getParent() != 0) || (chuf != null && chuf.getThread() != body.getThread())) {
+                Integer chuf = getParentTidPost(body.getParent());
+                if ((chuf == null && body.getParent() != 0) || (chuf != null && chuf != body.getThread())) {
 
                     return 409;
                 }
@@ -58,7 +57,6 @@ public class PostDAO {
                     return pst;
                 }, keyHolder);
                 body.setId(keyHolder.getKey().intValue());
-                setPostsPath(chuf, body);
             }
             if (bodyList.size() > 0) {
                 String sql = "UPDATE forum "+
@@ -70,6 +68,16 @@ public class PostDAO {
         } catch (Exception e) {
 
             return 404;
+        }
+    }
+
+    public Integer getParentTidPost(long id) {
+        try {
+            return template.queryForObject(
+                    "SELECT threadid FROM post WHERE pid = ?",
+                    Integer.class, id);
+        } catch (DataAccessException e) {
+            return null;
         }
     }
     public Post getPostById(long id) {
@@ -102,41 +110,8 @@ public class PostDAO {
             return pst;
         }, keyHolder);
     }
-    public void setPostsPath(Post chuf, Post body) {
-        template.update(con -> {
-            PreparedStatement pst = con.prepareStatement(
-                    "update post set" +
-                            "  path = ? " +
-                            "where pid = ?");
-            if (body.getParent() == 0) {
-                pst.setArray(1, con.createArrayOf("INT", new Object[]{body.getId()}));//String.valueOf(body.getId()));
-            } else {
-                ArrayList arr = new ArrayList<Object>(Arrays.asList(chuf.getPath()));
-                arr.add(body.getId());
-                pst.setArray(1, con.createArrayOf("INT", arr.toArray()));//chuf.getPath() + "-" + String.valueOf(body.getId()));
-            }
-            pst.setLong(2, body.getId());
-            return pst;
-        });
-
-    }
-
-
-
-
-
-    /*@JsonProperty("id") long id,
-@JsonProperty("forumid") long forumid,
-@JsonProperty("parent") long parent,
-@JsonProperty("thread") long thread,
-@JsonProperty("isedited") boolean isedited,
-@JsonProperty("author") String author,
-@JsonProperty("message") String message,
-@JsonProperty("forum") String forum,
-@JsonProperty("created") Timestamp created*/
     private static final RowMapper<Post> POST_MAPPER = (res, num) -> {
         Long id = res.getLong("pid");
-//        Long forumid = res.getLong("forumid");
         Long parent = res.getLong("parent");
         Long threadid = res.getLong("threadid");
         boolean isedited = res.getBoolean("isedited");
