@@ -59,11 +59,12 @@ public class PostDAO {
                 }, keyHolder);
                 body.setId(keyHolder.getKey().intValue());
                 setPostsPath(chuf, body);
+            }
+            if (bodyList.size() > 0) {
                 String sql = "UPDATE forum "+
-                    "set postCount = postCount + 1 "+
-                    "WHERE slug = ?::citext";
-                template.update(sql, body.getForum());
-
+                        "set postCount = postCount + ?" +
+                        "WHERE slug = ?::citext";
+                template.update(sql, bodyList.size(), bodyList.get(0).getForum());
             }
             return 201;
         } catch (Exception e) {
