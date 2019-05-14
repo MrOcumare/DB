@@ -214,7 +214,7 @@ DROP INDEX IF EXISTS post_path_index;
 CREATE INDEX post_new_index on post ((path [ 1]), threadid, pid, created);
 
 -- CREATE INDEX post_owner_forum on post (forum, owner);
-CREATE INDEX post_tid on post (threadid);
+CREATE INDEX post_tid on post (threadid, path);
 ---дал буст
 -- CREATE INDEX thread_owner_forum on thread(forum, owner);
 
