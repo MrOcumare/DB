@@ -234,9 +234,9 @@ CREATE INDEX thread_forum_created
   ON thread (forumid, created);
 
 ------++++
-CREATE INDEX New_Posts
-  ON post (threadid, parent, path, pid);
-
-create index By_null_parent on post (threadid, (path[1])) where parent = 0;
-
-CREATE INDEX post_tid_2 on post (threadid, path);
+-- CREATE INDEX New_Posts
+--   ON post (threadid, parent, path, pid);
+--
+-- create index By_null_parent on post (threadid, (path[1])) where parent = 0;
+--
+-- CREATE INDEX post_tid_2 on post (threadid, path);
