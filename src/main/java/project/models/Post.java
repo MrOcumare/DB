@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 
 public class Post {
     private long id;
-//    private long forumid;
+    private long forumid;
     private long parent;
     private String author;
     private String message;
@@ -22,7 +22,7 @@ public class Post {
     @JsonCreator
     public Post (
             @JsonProperty("id") long id,
-//            @JsonProperty("forumid") long forumid,
+            @JsonProperty("forumid") long forumid,
             @JsonProperty("parent") long parent,
             @JsonProperty("thread") long thread,
             @JsonProperty("isedited") boolean isedited,
@@ -33,7 +33,7 @@ public class Post {
             @JsonProperty("path") Object[] path
     )
     {
-//        this.forumid = forumid;
+        this.forumid = forumid;
         this.id = id;
         this.parent = parent;
         this.forum = forum;
@@ -59,13 +59,13 @@ public class Post {
         this.id = id;
     }
 
-//    public long getForumid() {
-//        return forumid;
-//    }
+    public long getForumid() {
+        return forumid;
+    }
 
-//    public void setForumid(long forumid) {
-//        this.forumid = forumid;
-//    }
+    public void setForumid(long forumid) {
+        this.forumid = forumid;
+    }
 
     public long getParent() {
         return parent;

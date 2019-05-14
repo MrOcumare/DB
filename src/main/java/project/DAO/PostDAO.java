@@ -26,6 +26,7 @@ public class PostDAO {
             for (Post body : bodyList) {
                 body.setForum(th.getForum());
                 body.setThread(th.getId());
+                body.setForumid(th.getForumid());
                 body.setCreated(bodyList.get(0).getCreated());
                 Integer chuf = getParentTidPost(body.getParent());
                 if ((chuf == null && body.getParent() != 0) || (chuf != null && chuf != body.getThread())) {
@@ -34,8 +35,8 @@ public class PostDAO {
                 }
                 template.update(con -> {
                     PreparedStatement pst = con.prepareStatement(
-                            "insert into post(parent, threadid, isedited, owner, message, forum, created)"
-                                    + " values(?,?,?,?,?,?,?::timestamptz)" + " returning pid",
+                            "insert into post(parent, threadid, isedited, owner, message, forum, created, forumid)"
+                                    + " values(?,?,?,?,?,?,?::timestamptz,?)" + " returning pid",
                             PreparedStatement.RETURN_GENERATED_KEYS);
                    // System.out.println("ABROCADABRA");
                     pst.setLong(1, body.getParent());
@@ -52,8 +53,8 @@ public class PostDAO {
                    // System.out.println(body.getForum());
                     pst.setString(7, body.getCreated());
                    // System.out.println(body.getCreated());
-                    //pst.setLong(8, body.getForumid());
-                    //System.out.println(body.getForumid());
+                    pst.setLong(8, body.getForumid());
+//                    System.out.println(body.getForumid());
                     return pst;
                 }, keyHolder);
                 body.setId(keyHolder.getKey().intValue());
@@ -112,6 +113,7 @@ public class PostDAO {
     }
     private static final RowMapper<Post> POST_MAPPER = (res, num) -> {
         Long id = res.getLong("pid");
+        Long forumid = res.getLong("forumid");
         Long parent = res.getLong("parent");
         Long threadid = res.getLong("threadid");
         boolean isedited = res.getBoolean("isedited");
@@ -120,6 +122,6 @@ public class PostDAO {
         String forum = res.getString("forum");
         Timestamp created = res.getTimestamp("created");
         Array path = res.getArray("path");
-        return new Post(id,  parent, threadid, isedited, author, message, forum, created, (Object[]) path.getArray());
+        return new Post(id,forumid,  parent, threadid, isedited, author, message, forum, created, (Object[]) path.getArray());
     };
 }

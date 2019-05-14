@@ -135,24 +135,29 @@ public class ThreadDAO {
 
     public void vote(String key, Vote vt) {
         try {
-            vt.setTid(Integer.parseInt(key));
-        } catch (NumberFormatException e) {
-            vt.setTid(
-                    template.queryForObject("SELECT tid FROM thread WHERE slug = ?::citext", new Object[]{key}, Integer.class));
-        }
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        template.update(con -> {
-            PreparedStatement statement = con.prepareStatement(
-                    "insert into vote(owner, voice, tid) values(?::citext,?, ?)" +
-                            " ON CONFLICT (owner, tid) " +
-                            " DO UPDATE SET voice = EXCLUDED.voice;",
-                    PreparedStatement.RETURN_GENERATED_KEYS);
-            statement.setString(1, vt.getNickname());
-            statement.setLong(2, vt.getVoice());
-            statement.setLong(3, vt.getTid());
+            Integer id = Integer.parseInt(key);
 
-            return statement;
-        }, keyHolder);
+            String sql = "INSERT INTO vote (ownerid, tid, voice)" +
+                    "    SELECT( SELECT id FROM users WHERE lower(nickname) = lower(?)) AS uid," +
+                    " ?, " +
+                    "    ? " +
+                    "    ON CONFLICT (ownerid, tid)" +
+                    "    DO UPDATE SET voice = EXCLUDED.voice;";
+            template.update(sql, vt.getNickname(), id, vt.getVoice());
+
+        } catch (Exception e) {
+            String sql = "INSERT INTO vote (ownerid, tid, voice) VALUES ((SELECT id " +
+                    "                                                    FROM users " +
+                    "                                                    WHERE lower(nickname) = lower(?)), (SELECT tid " +
+                    "                                                                                                      FROM thread " +
+                    "                                                                                                      WHERE " +
+                    "                                                                                                        lower(slug) = " +
+                    "                                                                                                        lower(?)), " +
+                    "                                                   (?)) " +
+                    "ON CONFLICT (ownerid, tid) " +
+                    "  DO UPDATE SET voice = EXCLUDED.voice;";
+            template.update(sql, vt.getNickname(), key, vt.getVoice());
+        }
 
     }
 
@@ -220,7 +225,7 @@ public class ThreadDAO {
             }
             myStr.append(" order by path ");
             if (desc) {
-                myStr.append(" desc, pid desc ");
+                myStr.append(" desc ");
             }
             if (limit != null) {
                 myStr.append(" limit ? ");
@@ -233,10 +238,10 @@ public class ThreadDAO {
             StringBuilder myStr = new StringBuilder("select * from post p join ");
             if (since != null) {
                 if (desc) {
-                    myStr.append(" (select pid from post where parent = 0 and threadid = ? and path[1] < (SELECT path[1] FROM post WHERE pid = ?) order by pid desc  limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid desc, p.path asc, created desc ;");
+                    myStr.append(" (select pid from post where parent = 0 and threadid = ? and path[1] < (SELECT path[1] FROM post WHERE pid = ?) order by pid desc  limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid desc, p.path asc;");
 
                 } else {
-                    myStr.append(" (select pid from post where parent = 0 and threadid = ? and path[1] > (SELECT path[1] FROM post WHERE pid = ?) order by pid asc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid asc, p.path asc, created desc ;");
+                    myStr.append(" (select pid from post where parent = 0 and threadid = ? and path[1] > (SELECT path[1] FROM post WHERE pid = ?) order by pid asc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid asc, p.path asc;");
                 }
                 myObj.add(threadId);
                 myObj.add(since);
@@ -246,9 +251,9 @@ public class ThreadDAO {
 
             } else if (limit != null) {
                 if (desc) {
-                    myStr.append(" (select pid  from post where parent = 0 and threadid = ? order by pid desc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid desc, p.path asc, created desc ;");
+                    myStr.append(" (select pid  from post where parent = 0 and threadid = ? order by pid desc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid desc, p.path asc;");
                 } else {
-                    myStr.append(" (select pid  from post where parent = 0 and threadid = ? order by pid asc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid asc, p.path asc, created desc ;");
+                    myStr.append(" (select pid  from post where parent = 0 and threadid = ? order by pid asc limit ? ) as TT on  path[1] = TT.pid and p.threadid = ? order by TT.pid asc, p.path asc ;");
                 }
                 myObj.add(threadId);
                 myObj.add(limit);
@@ -268,11 +273,8 @@ public class ThreadDAO {
     /////
 
 
-    //    public static final RowMapper<Vote> VOTE_MAPPER = (res, num) -> {
-//        String nickname = res.getString("nickname");
-//        Long vote = res.getLong("vote");
-//        return new Vote(nickname, vote);
-//    };
+
+
     private static final RowMapper<Thread> THREAD_MAPPER = (res, num) -> {
         long votes = res.getLong("votes");
         Long id = res.getLong("tid");
@@ -288,7 +290,7 @@ public class ThreadDAO {
 
     private static final RowMapper<Post> POST_MAPPER = (res, num) -> {
         Long id = res.getLong("pid");
-//        Long forumid = res.getLong("forumid");
+        Long forumid = res.getLong("forumid");
         Long parent = res.getLong("parent");
         Long threadid = res.getLong("threadid");
         boolean isedited = res.getBoolean("isedited");
@@ -297,7 +299,7 @@ public class ThreadDAO {
         String forum = res.getString("forum");
         Timestamp created = res.getTimestamp("created");
         Array path = res.getArray("path");
-        return new Post(id,  parent, threadid, isedited, author, message, forum, created, (Object[]) path.getArray());
+        return new Post(id, forumid ,parent, threadid, isedited, author, message, forum, created, (Object[]) path.getArray());
     };
 
 
