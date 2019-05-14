@@ -93,7 +93,8 @@ public class ForumController {
                                         @RequestParam(value = "desc", required = false) boolean desc) {
 
         List<Thread> result  = treadDAO.getThreads(forum, limit, since, desc);
-        if (result != null & forumDAO.getForum(forum) != null) {
+
+        if (result != null & forumDAO.getForumIdBySlug(forum) != null) { //TODO get only id of forum
             return ResponseEntity.status(HttpStatus.OK).body(result);
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);
@@ -112,7 +113,7 @@ public class ForumController {
                                       @RequestParam(value = "limit", required = false) Integer limit,
                                       @RequestParam(value = "since", required = false) String since,
                                       @RequestParam(value = "desc", required = false, defaultValue = "false") Boolean desc) {
-        if (forumDAO.getForum(forum) != null ) {
+        if (forumDAO.getForumIdBySlug(forum) != null ) { // TODO only forum
             return ResponseEntity.status(HttpStatus.OK).body(forumDAO.getUsers(forumDAO.getForumIdBySlug(forum), limit, since, desc));
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(err);

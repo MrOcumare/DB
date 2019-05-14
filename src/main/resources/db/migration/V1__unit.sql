@@ -41,6 +41,7 @@ CREATE table post
   message  TEXT NOT NULL,
   parent   INTEGER DEFAULT 0,
   threadid INTEGER REFERENCES thread (tid),
+  forumid  INTEGER,
   path     INT[] DEFAULT ARRAY[]::INT[]
 );
 
@@ -48,9 +49,9 @@ CREATE TABLE vote
 (
   id    SERIAL PRIMARY KEY,
   tid   INTEGER NOT NULL REFERENCES thread (tid),
-  owner CITEXT  NOT NULL REFERENCES users (nickname),
+  ownerid   INTEGER NOT NULL REFERENCES users (id),
   voice INTEGER DEFAULT 0,
-  UNIQUE (owner, tid)
+  UNIQUE (ownerid, tid)
 );
 
 

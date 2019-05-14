@@ -56,13 +56,13 @@ public class ForumDAO {
     }
 
     public Integer getForumIdBySlug(String slug) {
-//        try {
+        try {
         return template.queryForObject(
                 "SELECT id FROM forum WHERE slug = ?::citext",
                 Integer.class, slug);
-//        } catch (DataAccessException e) {
-//            return null;
-//        }
+        } catch (DataAccessException e) {
+            return null;
+        }
     }
     public Forum getForum(String slug) {
         try {
